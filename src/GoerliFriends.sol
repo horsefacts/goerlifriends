@@ -31,10 +31,11 @@ interface ISwappableBridge {
 /// @notice Dump Goerli ETH, send proceeds to Protocol Guild
 /// @author horsefacts <horsefacts@terminally.online>
 contract GoerliFriends {
-    event Dump(address indexed goerliFriend, uint256 amount);
+    event Dump(address indexed caller, uint256 amount);
+    event Contribute(address indexed goerliFriend, uint256 amount);
 
     /// @notice LayerZero mainnet chain ID
-    uint16 constant LZ_MAINNET_CHAIN_ID = 101;
+    uint16 public constant LZ_MAINNET_CHAIN_ID = 101;
 
     /// @notice Mainnet protocol guild split contract
     /// https://protocol-guild.readthedocs.io/en/latest/3-smart-contract.html#split-contract
@@ -51,17 +52,24 @@ contract GoerliFriends {
     }
 
     function dump() external payable {
-        // Dump the full contract balance: msg.value plus any Goerli ETH sent to this contract
-        uint256 amount = address(this).balance;
-        // Calculate native gas fee in Goerli ETH
-        (uint256 nativeFee,) =
-            oft.estimateSendFee(LZ_MAINNET_CHAIN_ID, abi.encodePacked(PROTOCOL_GUILD_SPLIT), amount, false, "");
-        // Swap, bridge, and send ETH proceeds to mainnet Protocol Guild split contract
-        bridge.swapAndBridge{value: amount}(
-            amount - nativeFee, 0, LZ_MAINNET_CHAIN_ID, PROTOCOL_GUILD_SPLIT, PROTOCOL_GUILD_SPLIT, address(0), ""
-        );
-        emit Dump(msg.sender, amount);
+        emit Contribute(msg.sender, msg.value);
+
+        uint256 balance = address(this).balance;
+        // Only dump if contract balance is > 100 ETH
+        if (balance > 100 ether) {
+            // Calculate native gas fee in Goerli ETH
+            (uint256 nativeFee,) =
+                oft.estimateSendFee(LZ_MAINNET_CHAIN_ID, abi.encodePacked(PROTOCOL_GUILD_SPLIT), balance, false, "");
+            if (nativeFee > balance) revert("Bridge fee > contract balance");
+            // Swap, bridge, and send ETH proceeds to mainnet Protocol Guild split contract
+            bridge.swapAndBridge{value: balance}(
+                balance - nativeFee, 0, LZ_MAINNET_CHAIN_ID, PROTOCOL_GUILD_SPLIT, PROTOCOL_GUILD_SPLIT, address(0), ""
+            );
+            emit Dump(msg.sender, balance);
+        }
     }
 
-    receive() external payable {}
+    receive() external payable {
+        emit Contribute(msg.sender, msg.value);
+    }
 }
