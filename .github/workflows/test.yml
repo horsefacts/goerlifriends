@@ -8,6 +8,7 @@ on:
 
 env:
   FOUNDRY_PROFILE: ci
+  GOERLI_RPC_URL: ${{ secrets.GOERLI_RPC_URL }}
 
 jobs:
   check:
