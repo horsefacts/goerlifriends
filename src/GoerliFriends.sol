@@ -51,17 +51,21 @@ contract GoerliFriends {
         oft = IOFTCore(bridge.oft());
     }
 
+    /// @notice Dump Goerli ETH for mainnet ETH and send proceeds to the mainnet Protocol Guild split contract.
+    /// Dumps the full contract balance. If contract balance is less than 100 Goerli ETH, your contribution
+    /// will be pooled and dumped once the balance is sufficient to swap and bridge. You may also send Goerli ETH
+    /// directly to this contract to contribute to the pooled balance.
     function dump() external payable {
         emit Contribute(msg.sender, msg.value);
 
-        // We'll dump the full contract balance if it's above a minimum amount.
+        // We'll dump the full contract balance if it's above a minimum amount
         uint256 balance = address(this).balance;
-        // Only dump if contract balance is > 100 ETH
+        // Only dump if contract balance is > 100 Goerli ETH
         if (balance > 100 ether) {
             // Calculate native gas fee in Goerli ETH
             (uint256 nativeFee,) =
                 oft.estimateSendFee(LZ_MAINNET_CHAIN_ID, abi.encodePacked(PROTOCOL_GUILD_SPLIT), balance, false, "");
-            // Revert if bridge fee exceeds balance
+            // 100 ETH is just a heuristic and fees might change. Revert with a nice message if bridge fee exceeds balance
             if (nativeFee > balance) revert("Bridge fee > contract balance");
             // Swap, bridge, and send ETH proceeds to mainnet Protocol Guild split contract
             bridge.swapAndBridge{value: balance}(

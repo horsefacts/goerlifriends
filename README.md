@@ -5,4 +5,4 @@
 Dump Goerli ETH on the [LayerZero testnet bridge](https://testnetbridge.com/), send proceeds to [Protocol Guild](https://protocol-guild.readthedocs.io/en/latest/).
 
 ## Deployments
-- Goerli: [`0x35b08a660b3b90994bc48635b0d93ce1e2804b12`](https://goerli.etherscan.io/address/0x35b08a660b3b90994bc48635b0d93ce1e2804b12)
+- Goerli: [`0xfff855836023bdad5b408f45624ce8aa8868a625`](https://goerli.etherscan.io/address/0xfff855836023bdad5b408f45624ce8aa8868a625)
