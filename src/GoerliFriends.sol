@@ -54,12 +54,14 @@ contract GoerliFriends {
     function dump() external payable {
         emit Contribute(msg.sender, msg.value);
 
+        // We'll dump the full contract balance if it's above a minimum amount.
         uint256 balance = address(this).balance;
         // Only dump if contract balance is > 100 ETH
         if (balance > 100 ether) {
             // Calculate native gas fee in Goerli ETH
             (uint256 nativeFee,) =
                 oft.estimateSendFee(LZ_MAINNET_CHAIN_ID, abi.encodePacked(PROTOCOL_GUILD_SPLIT), balance, false, "");
+            // Revert if bridge fee exceeds balance
             if (nativeFee > balance) revert("Bridge fee > contract balance");
             // Swap, bridge, and send ETH proceeds to mainnet Protocol Guild split contract
             bridge.swapAndBridge{value: balance}(
